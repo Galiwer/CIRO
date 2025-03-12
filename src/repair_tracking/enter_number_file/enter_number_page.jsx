@@ -6,8 +6,8 @@ export default function EnterNumberPage() {
   const [jobNumber, setJobNumber] = useState("");
   const navigate = useNavigate();
 
-
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault();  
     if (jobNumber.trim()) {
       navigate("/repair_tracking/display_progress_file/display_progress_page", { state: { jobNumber } });
     } else {
@@ -19,15 +19,25 @@ export default function EnterNumberPage() {
     <div className="container">
       <div className="card">
         <h2 className="title">Enter Job Number</h2>
-        <input
-          type="text"
-          placeholder="Enter job number"
-          value={jobNumber}
-          onChange={(e) => setJobNumber(e.target.value)}
-          className="input-field"
-        />
-        <button className="button" onClick={handleSubmit}>
-          Submit
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Enter job number"
+            value={jobNumber}
+            onChange={(e) => setJobNumber(e.target.value)}
+            className="input-field"
+            required
+          />
+          <button type="submit" className="button">
+            Submit
+          </button>
+        </form>
+        <button 
+          className="button" 
+          onClick={() => navigate("/repair_tracking/progress_update_file/progress_update_page")}
+          title="This page is under construction"
+        >
+          Under construction
         </button>
       </div>
     </div>

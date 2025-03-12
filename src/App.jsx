@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import EnterNumberPage from './repair_tracking/enter_number_file/enter_number_page.jsx';
 import RepairProgress from './repair_tracking/display_progress_file/display_progress_page.jsx';
+import ProgressUpdate from './repair_tracking/progress_update_file/progress_update_page.jsx';
 import './App.css';
+
 
 function App() {
   const navigate = useNavigate();
@@ -23,6 +25,8 @@ function Main() {
         <Route path="/repair_tracking/enter_number_file/enter_number_page" element={<EnterNumberPage />} />
         <Route path="/" element={<EnterNumberPage />} />
         <Route path="/repair_tracking/display_progress_file/display_progress_page" element={<RepairProgress />} />
+        <Route path="/" element={<EnterNumberPage />} />
+        <Route path="/repair_tracking/progress_update_file/progress_update_page" element={<ProgressUpdate />} />
       </Routes>
     </Router>
   );
