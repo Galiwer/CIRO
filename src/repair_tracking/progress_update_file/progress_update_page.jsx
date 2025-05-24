@@ -1,108 +1,207 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { isAuthenticated, isAdmin } from "../../services/UserService";
+import { getAllJobs, updateJobStatus, deleteJob, createJob, getStatusCode, getStatusText, statusMap } from "../RepairTrackingService";
 import "./progress_update_page.css";
 
 const ProgressUpdate = () => {
   const [jobs, setJobs] = useState([]);
+  const [newJobNumber, setNewJobNumber] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const mockData = [
-      { id: 1, jobNumber: "J1001", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 2, jobNumber: "J1002", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 3, jobNumber: "J1003", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 4, jobNumber: "J1004", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 5, jobNumber: "J1005", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 6, jobNumber: "J1006", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 7, jobNumber: "J1007", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 8, jobNumber: "J1008", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 9, jobNumber: "J1009", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 10, jobNumber: "J1010", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 11, jobNumber: "J1011", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 12, jobNumber: "J1012", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 13, jobNumber: "J1013", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 14, jobNumber: "J1014", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 15, jobNumber: "J1015", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 16, jobNumber: "J1016", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 17, jobNumber: "J1017", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 18, jobNumber: "J1018", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 19, jobNumber: "J1019", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 20, jobNumber: "J1020", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 21, jobNumber: "J1021", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 22, jobNumber: "J1022", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 23, jobNumber: "J1023", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 24, jobNumber: "J1024", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 25, jobNumber: "J1025", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 26, jobNumber: "J1026", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 27, jobNumber: "J1027", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 28, jobNumber: "J1028", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 29, jobNumber: "J1029", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 30, jobNumber: "J1030", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 31, jobNumber: "J1031", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 32, jobNumber: "J1032", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 33, jobNumber: "J1033", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 34, jobNumber: "J1034", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 35, jobNumber: "J1035", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 36, jobNumber: "J1036", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 37, jobNumber: "J1037", status: "In Queue", timestamp: new Date().toISOString() },
-      { id: 38, jobNumber: "J1038", status: "Processing", timestamp: new Date().toISOString() },
-      { id: 39, jobNumber: "J1039", status: "Repaired", timestamp: new Date().toISOString() },
-      { id: 40, jobNumber: "J1040", status: "In Queue", timestamp: new Date().toISOString() },
-    ];
+    // Check for admin access
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
 
+    if (!isAdmin()) {
+      navigate("/");
+      return;
+    }
 
-    
-    const uniqueJobs = Array.from(new Set(mockData.map(job => job.id))).map(id =>
-      mockData.find(job => job.id === id)
-    );
+    fetchJobs();
+  }, [navigate]);
 
-    setJobs(uniqueJobs);
-  }, []);
+  const fetchJobs = async () => {
+    try {
+      setError(null);
+      const data = await getAllJobs();
+      
+      if (!data) {
+        throw new Error('No data received from server');
+      }
 
-  const handleStatusChange = (jobId, newStatus) => {
-    const updatedJobs = jobs.map(job =>
-      job.id === jobId ? { ...job, status: newStatus, timestamp: new Date().toISOString() } : job
-    );
-    setJobs(updatedJobs);
+      setJobs(data);
+      const lastNumber =
+        data.length > 0
+          ? Math.max(...data.map((j) => parseInt(j.jobNumber.replace(/\D/g, ""), 10)))
+          : 0;
+      setNewJobNumber(`J${lastNumber + 1}`);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      setError(error.message || "Failed to load jobs. Please try again later.");
+      if (error.status === 401 || error.status === 403) {
+        navigate("/login");
+      }
+    }
   };
 
+  const handleStatusChange = async (jobNumber, newStatusText) => {
+    try {
+      setError(null);
+      const statusCode = getStatusCode(newStatusText);
+      await updateJobStatus(jobNumber, statusCode);
+      fetchJobs();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      setError(error.message || "Failed to update job status. Please try again.");
+      if (error.status === 401 || error.status === 403) {
+        navigate("/login");
+      }
+    }
+  };
+
+  const handleDelete = async (jobNumber) => {
+    if (window.confirm("Are you sure you want to delete this job?")) {
+      try {
+        setError(null);
+        await deleteJob(jobNumber);
+        fetchJobs();
+      } catch (error) {
+        console.error("Error deleting job:", error);
+        setError(error.message || "Failed to delete job. Please try again.");
+        if (error.status === 401 || error.status === 403) {
+          navigate("/login");
+        }
+      }
+    }
+  };
+
+  const handleAddJob = async () => {
+    if (!newJobNumber.trim()) return;
+    try {
+      setError(null);
+      await createJob({
+        jobNumber: newJobNumber,
+        status: 1,
+      });
+      fetchJobs();
+    } catch (error) {
+      console.error("Error adding job:", error);
+      setError(error.message || "Failed to add job. Please try again.");
+      if (error.status === 401 || error.status === 403) {
+        navigate("/login");
+      }
+    }
+  };
+
+  const getLastUpdatedDate = (job) => {
+    return (
+      job.processingDate ||
+      job.doneDate ||
+      job.queueDate ||
+      job.createdAt ||
+      null
+    );
+  };
+
+  // Filter jobs based on search query
+  const filteredJobs = jobs.filter((job) =>
+    job.jobNumber.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-  <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">Job Status Tracker</h2>
-  <div className="table-container">
-    <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-      <thead className="bg-blue-600 text-white sticky top-0">
-        <tr>
-          <th className="px-6 py-3 text-left">Job Number</th>
-          <th className="px-6 py-3 text-left">Status</th>
-          <th className="px-6 py-3 text-left">Last Updated</th>
-          <th className="px-6 py-3 text-left">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {jobs.map((job, index) => (
-          <tr
-            key={job.id}
-            className={`border-b ${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-gray-100`}
-          >
-            <td className="px-6 py-4 text-gray-700">{job.jobNumber}</td>
-            <td className="px-6 py-4 font-medium text-gray-900">{job.status}</td>
-            <td className="px-6 py-4 text-gray-600">{new Date(job.timestamp).toLocaleString()}</td>
-            <td className="px-6 py-4">
-              <select
-                value={job.status}
-                onChange={(e) => handleStatusChange(job.id, e.target.value)}
-                className="px-3 py-1 border rounded-md shadow-sm bg-white text-gray-700 focus:ring focus:ring-blue-300"
-              >
-                <option value="In Queue">In Queue</option>
-                <option value="Processing">Processing</option>
-                <option value="Repaired">Repaired</option>
-              </select>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
+    <div className="progress-update-page">
+      <div className="container">
+        <div className="header">
+          <h1 className="title">Job Management</h1>
+          <div className="add-job">
+            <input
+              type="text"
+              className="input"
+              value={newJobNumber}
+              onChange={(e) => setNewJobNumber(e.target.value)}
+              placeholder="Enter Job Number"
+            />
+            <button className="add-btn" onClick={handleAddJob}>
+              Add Job
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="error-message" style={{ margin: '10px 0', padding: '10px', backgroundColor: '#ffebee', color: '#c62828', borderRadius: '4px' }}>
+            {error}
+          </div>
+        )}
+
+        <div className="search-bar">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search Job Number"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="table-wrapper">
+          <table className="job-table">
+            <thead>
+              <tr>
+                <th>Job Number</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+                <th>Change Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredJobs.map((job) => (
+                <tr key={job.jobNumber}>
+                  <td>{job.jobNumber}</td>
+                  <td>{getStatusText(job.status)}</td>
+                  <td>
+                    {getLastUpdatedDate(job)
+                      ? new Date(getLastUpdatedDate(job)).toLocaleString()
+                      : "Not available"}
+                  </td>
+                  <td>
+                    <select
+                      value={getStatusText(job.status)}
+                      onChange={(e) =>
+                        handleStatusChange(job.jobNumber, e.target.value)
+                      }
+                      className="status-select"
+                    >
+                      {Object.values(statusMap).map(
+                        (status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => handleDelete(job.jobNumber)}
+                      className="delete-btn"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 };
 

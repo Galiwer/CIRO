@@ -1,18 +1,12 @@
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import "./display_progress_page.css";
+import { getJobById } from "../RepairTrackingService";
+import "./display_progress_page.css"; // Keep your updated CSS
 
-
-const repairData = {
-  '12345': {
-    status: 1, 
-    updateDates: {
-      queue: '2025-03-10 14:00:00',
-      processing: '2025-03-11 09:30:00',
-      done: '2025-03-11 15:00:00',
-    },
-  },
-  
+const statusOrder = {
+  'IN_QUEUE': 1,
+  'IN_PROGRESS': 2,
+  'COMPLETED': 3
 };
 
 export default function RepairProgress() {
@@ -20,46 +14,102 @@ export default function RepairProgress() {
   const { jobNumber } = state || {};
   const [status, setStatus] = useState(null);
   const [updateDates, setUpdateDates] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const formatDate = (dateStr) => {
+    if (!dateStr)  return "";
+    return new Date(dateStr).toLocaleString(); 
+  };
 
   useEffect(() => {
-    if (jobNumber) {
-      console.log("Fetching data for job number:", jobNumber);  
-      const fetchedData = repairData[jobNumber];
-      console.log(fetchedData);  
-
-      if (fetchedData) {
-        setStatus(fetchedData.status);
-        setUpdateDates(fetchedData.updateDates);
-        console.log("Status set:", fetchedData.status);  
-      } else {
-        alert("Job number not found.");
+    const fetchRepairData = async () => {
+      if (!jobNumber) {
+        setError("No job number provided");
+        setLoading(false);
+        return;
       }
-    }
+  
+      try {
+        setError(null);
+        const data = await getJobById(jobNumber);
+  
+        if (data) {
+          setStatus(statusOrder[data.status] || 0); 
+          setUpdateDates({
+            queue : data.queueDate,
+            processing : data.processingDate,
+            done : data.doneDate,
+          });
+        } else {
+          setError("Job number not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching job data:", error);
+        setError(error.message || "Something went wrong while fetching the job data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchRepairData();
   }, [jobNumber]);
 
-  
-  const renderStatus = () => {
-    if (status === null) return <p>Loading...</p>;
+  const renderTimeline = () => {
+    if (loading) return <p className="loading-text">Loading...</p>;
+    if (error) return <p className="error-text">{error}</p>;
+    if (status === null) return <p className="loading-text">Job not found or no data available.</p>;
 
-    switch (status) {
-      case 1:
-        return <p>Job is in Queue. <br /> Date: {updateDates.queue}</p>;
-      case 2:
-        return <p>Job is in Processing. <br /> Date: {updateDates.processing}</p>;
-      case 3:
-        return <p>Job is Done. <br /> Date: {updateDates.done}</p>;
-      default:
-        return <p>Unknown status.</p>;
-    }
+    const steps = [
+      { title: "In Queue", detail: "Your job is currently waiting in the queue.", date: updateDates.queue },
+      { title: "Processing", detail: "Our technicians are currently working on your device.", date: updateDates.processing },
+      { title: "Completed", detail: "Your repair is completed and ready!", date: updateDates.done },
+    ];
+
+    return (
+      <div className="timeline">
+        {steps.map((step, index) => {
+          const isActive = status >= index + 1;
+          return (
+            <div className="timeline-step" key={index}>
+              <div className={`step-marker ${isActive ? 'active' : ''}`}>
+                {isActive ? <span className="check-icon">✓</span> : ''}
+              </div>
+              {index !== steps.length - 1 && <div className="step-line"></div>}
+              <div className={`step-body ${isActive ? 'active' : 'inactive'}`}>
+                <h3 className="step-title">{step.title}</h3>
+                <p className="step-detail">{step.detail}</p>
+                <p className="step-date">{formatDate(step.date)}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
-    <div className="container">
-      <div className="repair-status-card">
-        <h1>Repair Progress for Job Number: {jobNumber}</h1>
-        <div className="status">
-          {renderStatus()}
+    <div className="repair-progress-page">
+      <div className="container">
+        <div className="repair-status-card">
+          <h1 className="heading">Repair Progress</h1>
+          <p className="subheading">Tracking for Job Number: <span>{jobNumber}</span></p>
+          {renderTimeline()}
         </div>
+
+        {/* WhatsApp Floating Button */}
+        <a
+          href="https://wa.me/yourwhatsappphonenumber"
+          className="whatsapp-button"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/124/124034.png"
+            alt="Chat on WhatsApp"
+            className="whatsapp-icon"
+          />
+        </a>
       </div>
     </div>
   );
