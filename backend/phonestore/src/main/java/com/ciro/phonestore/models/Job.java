@@ -1,18 +1,29 @@
 package com.ciro.phonestore.models;
 
+import com.ciro.phonestore.exceptions.InvalidJobNumberException;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
 public class Job {
 
+    private static final java.util.regex.Pattern JOB_NUMBER_PATTERN = java.util.regex.Pattern.compile("^[Jj]\\d+$");
+
     @Id
     @Column(length = 100, name = "job_number")
+    @NotBlank(message = "Job number is required")
+    @Pattern(regexp = "^[Jj]\\d+$", message = "Job number must start with 'J' or 'j' followed by numbers")
     private String jobNumber;
 
+    @NotNull(message = "Job status is required")
     @Enumerated(EnumType.STRING)
     private JobStatus status;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime queueDate;
@@ -21,16 +32,14 @@ public class Job {
 
     private LocalDateTime doneDate;
 
-    private String deviceModel;
-
-    private String description;
-
-    // Getters and Setters
     public String getJobNumber() {
         return jobNumber;
     }
 
     public void setJobNumber(String jobNumber) {
+        if (jobNumber != null && !JOB_NUMBER_PATTERN.matcher(jobNumber).matches()) {
+            throw new InvalidJobNumberException(jobNumber);
+        }
         this.jobNumber = jobNumber;
     }
 
@@ -72,21 +81,5 @@ public class Job {
 
     public void setDoneDate(LocalDateTime doneDate) {
         this.doneDate = doneDate;
-    }
-
-    public String getDeviceModel() {
-        return deviceModel;
-    }
-
-    public void setDeviceModel(String deviceModel) {
-        this.deviceModel = deviceModel;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }
