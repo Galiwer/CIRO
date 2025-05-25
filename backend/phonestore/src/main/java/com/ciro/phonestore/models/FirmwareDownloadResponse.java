@@ -1,7 +1,11 @@
 package com.ciro.phonestore.models;
 
 public class FirmwareDownloadResponse {
+<<<<<<< HEAD
     private String type;
+=======
+    private String type; // "file" or "link"
+>>>>>>> origin/sugeerthan
     private String url;
     private String fileName;
     private String contentType;
@@ -36,7 +40,11 @@ public class FirmwareDownloadResponse {
         return response;
     }
 
+<<<<<<< HEAD
 
+=======
+    // Getters and Setters
+>>>>>>> origin/sugeerthan
     public String getType() {
         return type;
     }
