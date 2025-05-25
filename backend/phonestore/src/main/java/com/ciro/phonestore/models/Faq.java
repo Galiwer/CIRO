@@ -33,10 +33,6 @@ public class Faq {
         this.updatedAt = LocalDateTime.now();
     }
 
-<<<<<<< HEAD
-=======
-    // Getters and Setters
->>>>>>> origin/sugeerthan
     public Long getId() {
         return id;
     }

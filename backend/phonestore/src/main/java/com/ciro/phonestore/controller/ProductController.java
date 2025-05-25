@@ -16,11 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.ciro.phonestore.models.Product;
 import com.ciro.phonestore.models.ProductDto;
-<<<<<<< HEAD
 import com.ciro.phonestore.repository.ProductsRepository;
-=======
-import com.ciro.phonestore.services.ProductsRepository;
->>>>>>> origin/sugeerthan
 
 @RestController
 @RequestMapping("/api/products")
@@ -94,32 +90,20 @@ public class ProductController {
             String storageFileName = createdAt.getTime() + "_" + image.getOriginalFilename();
             logger.debug("Processing image file: {}", storageFileName);
 
-<<<<<<< HEAD
 
-=======
-            // Create upload directory if it doesn't exist
->>>>>>> origin/sugeerthan
             Path uploadPath = Paths.get(UPLOAD_DIR);
             if (!Files.exists(uploadPath)) {
                 logger.debug("Creating upload directory: {}", UPLOAD_DIR);
                 Files.createDirectories(uploadPath);
             }
 
-<<<<<<< HEAD
 
-=======
-            // Save the image file
->>>>>>> origin/sugeerthan
             try (InputStream inputStream = image.getInputStream()) {
                 Files.copy(inputStream, uploadPath.resolve(storageFileName), StandardCopyOption.REPLACE_EXISTING);
                 logger.debug("Image file saved successfully: {}", storageFileName);
             }
 
-<<<<<<< HEAD
 
-=======
-            // Create and save the product
->>>>>>> origin/sugeerthan
             Product product = new Product();
             product.setName(productDto.getName().trim());
             product.setBrand(productDto.getBrand().trim());
@@ -151,19 +135,11 @@ public class ProductController {
             Product product = productOpt.get();
 
             if (productDto.getImageFile() != null && !productDto.getImageFile().isEmpty()) {
-<<<<<<< HEAD
 
                 Path oldImagePath = Paths.get(UPLOAD_DIR + product.getImageFileName());
                 Files.deleteIfExists(oldImagePath);
 
 
-=======
-                // Delete old image
-                Path oldImagePath = Paths.get(UPLOAD_DIR + product.getImageFileName());
-                Files.deleteIfExists(oldImagePath);
-
-                // Save new image
->>>>>>> origin/sugeerthan
                 MultipartFile image = productDto.getImageFile();
                 Date createdAt = new Date();
                 String storageFileName = createdAt.getTime() + "_" + image.getOriginalFilename();
@@ -176,11 +152,7 @@ public class ProductController {
                 product.setImageFileName(storageFileName);
             }
 
-<<<<<<< HEAD
 
-=======
-            // Update other fields
->>>>>>> origin/sugeerthan
             if (productDto.getName() != null)
                 product.setName(productDto.getName().trim());
             if (productDto.getBrand() != null)

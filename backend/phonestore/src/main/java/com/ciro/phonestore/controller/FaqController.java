@@ -19,11 +19,7 @@ public class FaqController {
     @Autowired
     private FaqRepository faqRepository;
 
-<<<<<<< HEAD
 
-=======
-    // Create
->>>>>>> origin/sugeerthan
     @PostMapping
     public ResponseEntity<?> createFaq(@RequestBody Faq faq) {
         try {
@@ -36,11 +32,7 @@ public class FaqController {
         }
     }
 
-<<<<<<< HEAD
 
-=======
-    // Read all published
->>>>>>> origin/sugeerthan
     @GetMapping("/published")
     public ResponseEntity<?> getPublishedFaqs() {
         try {
@@ -53,11 +45,7 @@ public class FaqController {
         }
     }
 
-<<<<<<< HEAD
 
-=======
-    // Read all (admin)
->>>>>>> origin/sugeerthan
     @GetMapping
     public ResponseEntity<?> getAllActiveFaqs() {
         try {
@@ -70,11 +58,7 @@ public class FaqController {
         }
     }
 
-<<<<<<< HEAD
 
-=======
-    // Update
->>>>>>> origin/sugeerthan
     @PutMapping("/{id}")
     public ResponseEntity<?> updateFaq(@PathVariable Long id, @RequestBody Faq updatedFaq) {
         try {
@@ -99,11 +83,7 @@ public class FaqController {
         }
     }
 
-<<<<<<< HEAD
 
-=======
-    // Soft Delete
->>>>>>> origin/sugeerthan
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteFaq(@PathVariable Long id) {
         try {
