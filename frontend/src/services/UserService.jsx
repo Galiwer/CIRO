@@ -54,12 +54,16 @@ export const refreshAccessToken = async (refreshToken) => {
 
 export const register = async (userData) => {
     try {
+        const token = getToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
         const res = await fetch(`${BASE_URL}/auth/register`, {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            },
+            headers: headers,
             body: JSON.stringify(userData)
         });
         return res.json();

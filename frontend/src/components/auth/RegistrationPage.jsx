@@ -16,18 +16,7 @@ function RegistrationPage() {
         city: ''
     });
 
-    useEffect(() => {
-        // Check for admin access
-        if (!isAuthenticated()) {
-            navigate("/login");
-            return;
-        }
-
-        if (!isAdmin()) {
-            navigate("/");
-            return;
-        }
-    }, [navigate]);
+    // No page-load admin check so that anyone can register via the /register URL
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -43,7 +32,10 @@ function RegistrationPage() {
             setLoading(true);
             setError('');
             
-            await register(formData);
+            const response = await register(formData);
+            if (response && response.statusCode !== 200) {
+                throw new Error(response.error || response.message || 'Registration failed');
+            }
 
             // Clear the form fields after successful registration
             setFormData({
@@ -55,10 +47,14 @@ function RegistrationPage() {
             });
 
             alert('User registered successfully');
-            navigate('/admin/user-management');
+            if (isAdmin()) {
+                navigate('/admin/user-management');
+            } else {
+                navigate('/login');
+            }
         } catch (error) {
             console.error('Error registering user:', error);
-            setError(error.response?.data?.message || 'An error occurred while registering user');
+            setError(error.response?.data?.message || error.message || 'An error occurred while registering user');
             if (error.response?.status === 401 || error.response?.status === 403) {
                 navigate("/login");
             }
@@ -112,18 +108,20 @@ function RegistrationPage() {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label>Role:</label>
-                        <select
-                            name="role"
-                            value={formData.role}
-                            onChange={handleInputChange}
-                            required
-                        >
-                            <option value="USER">User</option>
-                            <option value="ADMIN">Admin</option>
-                        </select>
-                    </div>
+                    {isAdmin() && (
+                        <div className="form-group">
+                            <label>Role:</label>
+                            <select
+                                name="role"
+                                value={formData.role}
+                                onChange={handleInputChange}
+                                required
+                            >
+                                <option value="USER">User</option>
+                                <option value="ADMIN">Admin</option>
+                            </select>
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label>City:</label>
@@ -147,7 +145,13 @@ function RegistrationPage() {
                         <button 
                             type="button" 
                             className="cancel-button"
-                            onClick={() => navigate('/admin/user-management')}
+                            onClick={() => {
+                                if (isAdmin()) {
+                                    navigate('/admin/user-management');
+                                } else {
+                                    navigate('/login');
+                                }
+                            }}
                         >
                             Cancel
                         </button>

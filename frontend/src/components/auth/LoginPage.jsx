@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { login } from "../../services/UserService";
 import './LoginPage.css';
 
@@ -83,6 +83,11 @@ function LoginPage() {
                         Login
                     </button>
                 </form>
+                <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+                    <p style={{ margin: 0, color: '#666' }}>
+                        Don't have an account? <Link to="/register" style={{ color: '#7b1fa2', textDecoration: 'none', fontWeight: 'bold' }}>Register here</Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
